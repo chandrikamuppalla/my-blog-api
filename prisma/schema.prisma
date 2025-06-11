@@ -22,3 +22,51 @@ model Post {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+// Translated from your LoyaltyAccount entity
+model LoyaltyAccount {
+  id               String          @id @default(uuid())
+  customerId       String          @unique // FK to a customer
+  experiencePoints Int             @default(0)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  // Relation: An account has many wallets
+  wallets          LoyaltyWallet[]
+}
+
+// Translated from your LoyaltyWallet entity
+model LoyaltyWallet {
+  id             String         @id @default(uuid())
+  currencyCode   String // e.g., USDT, POINTS, ARTHA_TOKEN
+  balance        Decimal        @db.Decimal(18, 6) @default(0)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  // Relation: A wallet belongs to one account
+  loyaltyAccount   LoyaltyAccount @relation(fields: [loyaltyAccountId], references: [id], onDelete: Cascade)
+  loyaltyAccountId String
+
+  // This enforces the unique constraint from your entity
+  @@unique([loyaltyAccountId, currencyCode])
+}
+
+// Enum for the rewardType field
+enum RewardType {
+  Percentage
+  Fixed
+}
+
+// Translated from your RewardRule entity
+model RewardRule {
+  id                 String     @id @default(uuid())
+  ruleDescription    String
+  financeTxType      String // e.g., "CardPurchase", "Deposit"
+  rewardType         RewardType // Uses the enum defined above
+  rewardCurrencyCode String     // e.g., "USDT", "POINTS"
+  rewardPercentage   Decimal?   @db.Decimal(10, 2)
+  fixedReward        Decimal?   @db.Decimal(10, 2)
+  awardedXP          Int        @default(0)
+  notes              String?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+}
